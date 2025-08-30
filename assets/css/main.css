@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+body {
+	background:
+		linear-gradient(180deg, rgba(8, 145, 178, 0.08) -2.95%, rgba(240, 253, 250, 0) 81.96%),
+		linear-gradient(180deg, rgba(20, 184, 166, 0.12) -7.7%, rgba(240, 253, 250, 0) 72.96%), #f0fdfa;
+	background-attachment: fixed;
+	background-size: 100% 100vh;
+	background-repeat: no-repeat;
+}
+
+.dark body {
+	background: linear-gradient(180deg, rgba(8, 145, 178, 0.2) -10.52%, rgba(8, 145, 178, 0) 72.58%), #0c1618;
+	background-attachment: fixed;
+	background-size: 100% 100vh;
+	background-repeat: no-repeat;
+}
