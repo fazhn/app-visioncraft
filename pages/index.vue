@@ -1,5 +1,87 @@
 <template>
   <div class="min-h-screen bg-black text-white">
+    <!-- Intro Animation -->
+    <Transition name="intro" mode="out-in">
+      <div v-if="showIntro" class="fixed inset-0 z-50 flex items-center justify-center bg-black">
+        <div class="text-center">
+          <!-- Logo Animation -->
+          <div class="relative mb-8">
+            <div 
+              :class="[
+                'transition-all duration-1000 ease-out',
+                introStep >= 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
+              ]"
+            >
+              <div class="relative">
+                <h1 class="text-6xl md:text-8xl font-bold bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 bg-clip-text text-transparent animate-pulse">
+                  VisionCraft
+                </h1>
+                <div class="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full animate-ping"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- IA Badge Animation -->
+          <div 
+            :class="[
+              'transition-all duration-1000 ease-out delay-500',
+              introStep >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            ]"
+          >
+            <div class="inline-flex items-center bg-gradient-to-r from-purple-600 to-blue-600 rounded-full px-6 py-2 mb-8">
+              <UIcon name="i-heroicons-sparkles" class="h-5 w-5 text-white mr-2 animate-spin" />
+              <span class="text-white font-medium">IA</span>
+              <UIcon name="i-heroicons-sparkles" class="h-5 w-5 text-white ml-2 animate-spin" style="animation-direction: reverse;" />
+            </div>
+          </div>
+          
+          <!-- Tagline Animation -->
+          <div 
+            :class="[
+              'transition-all duration-1000 ease-out delay-1000',
+              introStep >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            ]"
+          >
+            <p class="text-xl md:text-2xl text-gray-300 mb-8 animate-pulse">
+              Crea, analiza y edita imágenes con inteligencia artificial
+            </p>
+          </div>
+          
+          <!-- Loading Bars Animation -->
+          <div 
+            :class="[
+              'transition-all duration-1000 ease-out delay-1500',
+              introStep >= 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            ]"
+          >
+            <div class="flex justify-center space-x-2 mb-8">
+              <div class="w-2 h-8 bg-yellow-400 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+              <div class="w-2 h-8 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+              <div class="w-2 h-8 bg-red-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+              <div class="w-2 h-8 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 0.3s;"></div>
+              <div class="w-2 h-8 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.4s;"></div>
+            </div>
+            <p class="text-gray-400 text-sm animate-pulse">Inicializando IA...</p>
+          </div>
+        </div>
+        
+        <!-- Particle Background -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+          <div 
+            v-for="i in 50" 
+            :key="i"
+            class="absolute w-1 h-1 bg-white rounded-full opacity-20 animate-ping"
+            :style="{
+              left: Math.random() * 100 + '%',
+              top: Math.random() * 100 + '%',
+              animationDelay: Math.random() * 3 + 's',
+              animationDuration: (Math.random() * 3 + 2) + 's'
+            }"
+          ></div>
+        </div>
+      </div>
+    </Transition>
+    
     <!-- Header Section -->
     <div class="flex flex-col items-center justify-center pt-20 pb-12">
       <h1 class="text-4xl font-normal text-white mb-6">VisionCraft IA</h1>
@@ -51,7 +133,7 @@
             <input 
               v-model="mainPrompt" 
               @keyup.enter="executePrompt"
-:placeholder="selectedFile ? 'Describe qué quieres hacer con la imagen subida...' : 'Describe la imagen que quieres crear, analizar o editar...'"
+:placeholder="conversationHistory.length > 0 ? 'Continúa editando la imagen anterior...' : selectedFile ? 'Describe qué quieres hacer con la imagen subida...' : 'Describe la imagen que quieres crear, analizar o editar...'"
               class="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-base"
             />
             <button 
@@ -67,6 +149,36 @@
               <UIcon :name="selectedFile ? 'i-heroicons-check' : 'i-heroicons-plus'" class="h-5 w-5" />
             </button>
             <UIcon name="i-heroicons-arrow-right" class="text-gray-400 ml-1 h-5 w-5" />
+          </div>
+        </div>
+        
+        <!-- Context Indicator -->
+        <div v-if="conversationHistory.length > 0" class="max-w-4xl mx-auto px-6 mb-6">
+          <div class="bg-gray-800/30 border border-gray-600 rounded-xl p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center">
+                <UIcon name="i-heroicons-clock" class="h-4 w-4 text-yellow-400 mr-2" />
+                <span class="text-gray-300 text-sm font-medium">Contexto activo</span>
+              </div>
+              <UButton 
+                @click="resetContext"
+                size="xs"
+                variant="ghost"
+                color="neutral"
+                class="text-gray-400 hover:text-white"
+              >
+                <UIcon name="i-heroicons-arrow-path" class="h-3 w-3 mr-1" />
+                Reiniciar
+              </UButton>
+            </div>
+            <div class="text-gray-400 text-xs">
+              <span class="font-mono bg-gray-900/50 px-2 py-1 rounded">
+                {{ conversationHistory.slice(-2).join(' → ') }}
+              </span>
+            </div>
+            <p class="text-gray-500 text-xs mt-2">
+              Las próximas ediciones mantendrán este contexto automáticamente
+            </p>
           </div>
         </div>
         
@@ -188,9 +300,17 @@ const selectedFile = ref<File | null>(null);
 const aiResponse = ref('');
 const generatedImages = ref<string[]>([]);
 
+// Context persistence
+const conversationHistory = ref<string[]>([]);
+const currentImageContext = ref<string>('');
+
 
 // Loading states
 const isProcessing = ref(false);
+
+// Intro animation state
+const showIntro = ref(true);
+const introStep = ref(0);
 
 // File input reference
 const fileInput = ref<HTMLInputElement>();
@@ -212,15 +332,33 @@ const executePrompt = async () => {
   isProcessing.value = true;
   try {
     let response;
+    let contextualPrompt = mainPrompt.value;
+    
+    // Build contextual prompt if there's conversation history
+    if (conversationHistory.value.length > 0) {
+      const context = conversationHistory.value.join(' -> ');
+      contextualPrompt = `Contexto previo: ${context}. Ahora: ${mainPrompt.value}`;
+    }
     
     // Determine action based on context
     if (selectedFile.value) {
       // If there's an uploaded file, analyze or edit it
-      response = await $gemini.analyzeImage(selectedFile.value, mainPrompt.value);
+      response = await $gemini.analyzeImage(selectedFile.value, contextualPrompt);
     } else {
       // Otherwise, generate image concept
-      response = await $gemini.generateImage(mainPrompt.value);
+      response = await $gemini.generateImage(contextualPrompt);
     }
+    
+    // Add current prompt to conversation history
+    conversationHistory.value.push(mainPrompt.value);
+    
+    // Limit history to last 5 interactions to avoid very long prompts
+    if (conversationHistory.value.length > 5) {
+      conversationHistory.value = conversationHistory.value.slice(-5);
+    }
+    
+    // Update current context
+    currentImageContext.value = mainPrompt.value;
     
     // Handle response with both text and images
     aiResponse.value = response.text;
@@ -230,17 +368,20 @@ const executePrompt = async () => {
       generatedImages.value = response.images;
       toast.add({ 
         title: `¡${response.images.length} imagen(es) generada(s)!`, 
-        description: 'Revisa la respuesta de IA abajo',
+        description: 'Puedes seguir editando con más prompts',
         color: 'success' 
       });
     } else {
       generatedImages.value = [];
       toast.add({ 
         title: '¡Respuesta de IA generada!', 
-        description: 'Revisa la respuesta abajo',
+        description: 'Puedes seguir editando con más prompts',
         color: 'success' 
       });
     }
+    
+    // Clear the input for next edit
+    mainPrompt.value = '';
     
   } catch (error) {
     console.error('Error processing prompt:', error);
@@ -284,6 +425,13 @@ const processFile = (file: File) => {
 
 
 
+// Reset conversation context
+const resetContext = () => {
+  conversationHistory.value = [];
+  currentImageContext.value = '';
+  toast.add({ title: 'Contexto reiniciado', description: 'Comenzarás una nueva conversación', color: 'info' });
+};
+
 // Download generated image
 const downloadImage = (imageUrl: string, index: number) => {
   const link = document.createElement('a');
@@ -299,9 +447,39 @@ const clearAll = () => {
   aiResponse.value = '';
   generatedImages.value = [];
   mainPrompt.value = '';
+  conversationHistory.value = [];
+  currentImageContext.value = '';
   
   toast.add({ title: 'Todos los datos eliminados', color: 'info' });
 };
+
+// Intro animation sequence
+onMounted(() => {
+  // Step 1: Show logo
+  setTimeout(() => {
+    introStep.value = 1;
+  }, 300);
+  
+  // Step 2: Show IA badge
+  setTimeout(() => {
+    introStep.value = 2;
+  }, 800);
+  
+  // Step 3: Show tagline
+  setTimeout(() => {
+    introStep.value = 3;
+  }, 1300);
+  
+  // Step 4: Show loading bars
+  setTimeout(() => {
+    introStep.value = 4;
+  }, 1800);
+  
+  // Hide intro and show main app
+  setTimeout(() => {
+    showIntro.value = false;
+  }, 3500);
+});
 </script>
 
 <style scoped>
@@ -315,4 +493,60 @@ const clearAll = () => {
 .thinking-dot:nth-child(1) { animation-delay: 0s; }
 .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
 .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* Intro transition animations */
+.intro-enter-active {
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.intro-leave-active {
+  transition: all 1s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+}
+
+.intro-enter-from {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.intro-leave-to {
+  opacity: 0;
+  transform: scale(1.1);
+  filter: blur(10px);
+}
+
+/* Additional gradient text animation */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gradient-animate {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Floating particles effect */
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(100vh) scale(0);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(90vh) scale(1);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(-10vh) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20vh) scale(0);
+  }
+}
+
+.float-particle {
+  animation: float-up 4s linear infinite;
+}
 </style>
