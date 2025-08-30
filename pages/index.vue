@@ -83,28 +83,28 @@
     </Transition>
     
     <!-- Header Section -->
-    <div class="flex flex-col items-center justify-center pt-20 pb-12">
-      <h1 class="text-4xl font-normal text-white mb-6">VisionCraft IA</h1>
+    <div class="flex flex-col items-center justify-center pt-8 md:pt-20 pb-8 md:pb-12 px-4">
+      <h1 class="text-3xl md:text-4xl font-normal text-white mb-4 md:mb-6">VisionCraft IA</h1>
       
       <!-- Description and Examples -->
-      <div class="text-center mb-12 max-w-3xl mx-auto">
-        <p class="text-gray-300 text-lg mb-8">
+      <div class="text-center mb-8 md:mb-12 max-w-3xl mx-auto px-4">
+        <p class="text-gray-300 text-base md:text-lg mb-6 md:mb-8">
           Crea, analiza y edita imágenes con inteligencia artificial
         </p>
         
         <!-- Example Prompts -->
-        <div class="space-y-3 mb-8">
-          <p class="text-gray-400 text-sm font-medium">Ejemplos de prompts:</p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <div class="space-y-3 mb-6 md:mb-8">
+          <p class="text-gray-400 text-xs md:text-sm font-medium">Ejemplos de prompts:</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm">
             <button 
               @click="setExamplePrompt(`Crea una imagen del hombre que te subí`)"
-              class="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-left text-gray-300 hover:bg-gray-700/50 hover:border-gray-600 transition-colors"
+              class="bg-gray-800/50 border border-gray-700 rounded-lg p-2 md:p-3 text-left text-gray-300 hover:bg-gray-700/50 hover:border-gray-600 transition-colors"
             >
               "Crea una imagen del hombre agregale una gorra roja y cambia su color de camisa"
             </button>
             <button 
               @click="setExamplePrompt(`Una ciudad futurista con rascacielos de cristal y autos voladores`)"
-              class="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-left text-gray-300 hover:bg-gray-700/50 hover:border-gray-600 transition-colors"
+              class="bg-gray-800/50 border border-gray-700 rounded-lg p-2 md:p-3 text-left text-gray-300 hover:bg-gray-700/50 hover:border-gray-600 transition-colors"
             >
               "Una ciudad futurista con rascacielos de cristal y autos voladores"
             </button>
@@ -125,35 +125,35 @@
       </div>
 
       <!-- Main Interface -->
-      <div class="max-w-4xl mx-auto px-6">
+      <div class="max-w-4xl mx-auto px-4 md:px-6">
         <!-- Input Section -->
-        <div class="relative mb-8">
-          <div class="flex items-center bg-gray-800 border border-gray-700 rounded-full px-6 py-4 hover:border-gray-600 focus-within:border-gray-500 transition-colors">
-            <UIcon name="i-heroicons-question-mark-circle" class="text-gray-400 mr-4 h-5 w-5" />
+        <div class="relative mb-6 md:mb-8">
+          <div class="flex items-center bg-gray-800 border border-gray-700 rounded-full px-4 md:px-6 py-3 md:py-4 hover:border-gray-600 focus-within:border-gray-500 transition-colors">
+            <UIcon name="i-heroicons-question-mark-circle" class="text-gray-400 mr-3 md:mr-4 h-4 md:h-5 w-4 md:w-5" />
             <input 
               v-model="mainPrompt" 
               @keyup.enter="executePrompt"
-:placeholder="conversationHistory.length > 0 ? 'Continúa editando la imagen anterior...' : selectedFile ? 'Describe qué quieres hacer con la imagen subida...' : 'Describe la imagen que quieres crear, analizar o editar...'"
-              class="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-base"
+:placeholder="conversationHistory.length > 0 ? 'Continúa editando...' : selectedFile ? 'Edita la imagen...' : 'Describe la imagen...'"
+              class="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm md:text-base"
             />
             <button 
               @click="fileInput?.click()"
               :class="[
-                'mr-3 transition-colors p-1 rounded-full',
+                'mr-2 md:mr-3 transition-colors p-1 rounded-full',
                 selectedFile 
                   ? 'text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20' 
                   : 'text-gray-400 hover:text-white hover:bg-gray-700'
               ]"
               :title="selectedFile ? 'Cambiar imagen' : 'Subir imagen'"
             >
-              <UIcon :name="selectedFile ? 'i-heroicons-check' : 'i-heroicons-plus'" class="h-5 w-5" />
+              <UIcon :name="selectedFile ? 'i-heroicons-check' : 'i-heroicons-plus'" class="h-4 md:h-5 w-4 md:w-5" />
             </button>
-            <UIcon name="i-heroicons-arrow-right" class="text-gray-400 ml-1 h-5 w-5" />
+            <UIcon name="i-heroicons-arrow-right" class="text-gray-400 ml-1 h-4 md:h-5 w-4 md:w-5" />
           </div>
         </div>
         
         <!-- Context Indicator -->
-        <div v-if="conversationHistory.length > 0" class="max-w-4xl mx-auto px-6 mb-6">
+        <div v-if="conversationHistory.length > 0" class="mb-4 md:mb-6">
           <div class="bg-gray-800/30 border border-gray-600 rounded-xl p-4">
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center">
@@ -183,11 +183,11 @@
         </div>
         
         <!-- Action Button -->
-        <div class="flex justify-center mb-12">
+        <div class="flex justify-center mb-8 md:mb-12">
           <UButton 
             @click="executePrompt"
             :loading="isProcessing"
-            class="bg-yellow-400 hover:bg-yellow-500 text-black font-medium px-8 py-3 rounded-full transition-colors"
+            class="bg-yellow-400 hover:bg-yellow-500 text-black font-medium px-6 md:px-8 py-3 rounded-full transition-colors text-sm md:text-base"
             size="lg"
           >
             <template #leading>
@@ -228,15 +228,15 @@
           @drop="handleDrop"
           @dragover.prevent
           @dragenter.prevent
-          class="border-2 border-dashed border-gray-700 rounded-2xl p-12 text-center hover:border-gray-600 transition-colors cursor-pointer mb-8"
+          class="border-2 border-dashed border-gray-700 rounded-2xl p-8 md:p-12 text-center hover:border-gray-600 transition-colors cursor-pointer mb-6 md:mb-8"
         >
-          <UIcon name="i-heroicons-arrow-up-tray" class="h-12 w-12 text-gray-500 mx-auto mb-4" />
-          <p class="text-gray-400 text-lg">Haz clic para subir o arrastra una imagen aquí</p>
-          <p class="text-gray-500 text-sm mt-2">Soporta JPG, PNG, GIF, WebP</p>
+          <UIcon name="i-heroicons-arrow-up-tray" class="h-8 md:h-12 w-8 md:w-12 text-gray-500 mx-auto mb-3 md:mb-4" />
+          <p class="text-gray-400 text-base md:text-lg">Haz clic para subir o arrastra una imagen aquí</p>
+          <p class="text-gray-500 text-xs md:text-sm mt-2">Soporta JPG, PNG, GIF, WebP</p>
         </div>
 
         <!-- AI Response Display -->
-        <div v-if="aiResponse || generatedImages.length > 0" class="bg-gray-900 border border-gray-700 rounded-2xl p-6 mb-8">
+        <div v-if="aiResponse || generatedImages.length > 0" class="bg-gray-900 border border-gray-700 rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
           <div class="flex items-center mb-4">
             <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
               <UIcon name="i-heroicons-sparkles" class="h-4 w-4 text-white" />
@@ -272,13 +272,14 @@
         </div>
         
         <!-- Action Buttons -->
-        <div v-if="aiResponse || generatedImages.length > 0" class="flex justify-center gap-4 mb-8">
+        <div v-if="aiResponse || generatedImages.length > 0" class="flex justify-center gap-4 mb-6 md:mb-8">
           <button 
             @click="clearAll"
-            class="group flex items-center px-6 py-2 bg-gray-800/50 border border-gray-700 rounded-full text-gray-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-200"
+            class="group flex items-center px-4 md:px-6 py-2 bg-gray-800/50 border border-gray-700 rounded-full text-gray-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-200 text-sm md:text-base"
           >
             <UIcon name="i-heroicons-trash" class="h-4 w-4 mr-2 group-hover:animate-pulse" />
-            Limpiar Todo
+            <span class="hidden sm:inline">Limpiar Todo</span>
+            <span class="sm:hidden">Limpiar</span>
           </button>
         </div>
       </div>
