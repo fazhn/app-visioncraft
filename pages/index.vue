@@ -273,15 +273,13 @@
         
         <!-- Action Buttons -->
         <div v-if="aiResponse || generatedImages.length > 0" class="flex justify-center gap-4 mb-8">
-          <UButton 
+          <button 
             @click="clearAll"
-            variant="ghost"
-            color="neutral"
-            class="text-gray-400 hover:text-white"
+            class="group flex items-center px-6 py-2 bg-gray-800/50 border border-gray-700 rounded-full text-gray-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-200"
           >
-            <UIcon name="i-heroicons-trash" class="h-4 w-4 mr-2" />
+            <UIcon name="i-heroicons-trash" class="h-4 w-4 mr-2 group-hover:animate-pulse" />
             Limpiar Todo
-          </UButton>
+          </button>
         </div>
       </div>
     </div>
@@ -319,13 +317,25 @@ const fileInput = ref<HTMLInputElement>();
 // Set example prompt
 const setExamplePrompt = (prompt: string) => {
   mainPrompt.value = prompt;
-  toast.add({ title: 'Ejemplo cargado', description: 'Haz clic en Generar para crear', color: 'info' });
+  toast.add({ 
+    title: '✨ Ejemplo cargado', 
+    description: 'Haz clic en Generar para crear tu imagen', 
+    color: 'warning',
+    actions: [{
+      label: 'Generar ahora',
+      click: () => executePrompt()
+    }]
+  });
 };
 
 // Execute main prompt action
 const executePrompt = async () => {
   if (!mainPrompt.value.trim()) {
-    toast.add({ title: 'Por favor ingresa un prompt', color: 'error' });
+    toast.add({ 
+      title: '⚠️ Campo vacío', 
+      description: 'Por favor ingresa un prompt para continuar',
+      color: 'warning'
+    });
     return;
   }
 
@@ -367,16 +377,28 @@ const executePrompt = async () => {
     if (response.images && response.images.length > 0) {
       generatedImages.value = response.images;
       toast.add({ 
-        title: `¡${response.images.length} imagen(es) generada(s)!`, 
-        description: 'Puedes seguir editando con más prompts',
-        color: 'success' 
+        title: `🎨 ¡${response.images.length} imagen${response.images.length > 1 ? 'es' : ''} generada${response.images.length > 1 ? 's' : ''}!`, 
+        description: 'Tu creación está lista. Puedes continuar editando',
+        color: 'success',
+        actions: [{
+          label: 'Ver resultado',
+          click: () => {
+            document.querySelector('.bg-gray-900.border.border-gray-700')?.scrollIntoView({ behavior: 'smooth' });
+          }
+        }]
       });
     } else {
       generatedImages.value = [];
       toast.add({ 
-        title: '¡Respuesta de IA generada!', 
-        description: 'Puedes seguir editando con más prompts',
-        color: 'success' 
+        title: '🤖 ¡Respuesta de IA lista!', 
+        description: 'Tu análisis está completo. Puedes continuar editando',
+        color: 'info',
+        actions: [{
+          label: 'Ver respuesta',
+          click: () => {
+            document.querySelector('.bg-gray-900.border.border-gray-700')?.scrollIntoView({ behavior: 'smooth' });
+          }
+        }]
       });
     }
     
@@ -385,7 +407,15 @@ const executePrompt = async () => {
     
   } catch (error) {
     console.error('Error processing prompt:', error);
-    toast.add({ title: 'Error al procesar la solicitud', color: 'error' });
+    toast.add({ 
+      title: '❌ Error de procesamiento', 
+      description: 'Ocurrió un problema al procesar tu solicitud. Intenta nuevamente.',
+      color: 'error',
+      actions: [{
+        label: 'Reintentar',
+        click: () => executePrompt()
+      }]
+    });
   } finally {
     isProcessing.value = false;
   }
@@ -399,7 +429,11 @@ const handleImageUpload = (event: Event) => {
   if (file && file.type.startsWith('image/')) {
     processFile(file);
   } else {
-    toast.add({ title: 'Por favor selecciona un archivo de imagen válido', color: 'error' });
+    toast.add({ 
+      title: '⚠️ Archivo inválido', 
+      description: 'Por favor selecciona un archivo de imagen válido (JPG, PNG, GIF, WebP)',
+      color: 'warning'
+    });
   }
 };
 
@@ -412,7 +446,11 @@ const handleDrop = (event: DragEvent) => {
     if (file.type.startsWith('image/')) {
       processFile(file);
     } else {
-      toast.add({ title: 'Por favor arrastra un archivo de imagen válido', color: 'error' });
+      toast.add({ 
+        title: '⚠️ Archivo inválido', 
+        description: 'Solo se permiten archivos de imagen (JPG, PNG, GIF, WebP)',
+        color: 'warning'
+      });
     }
   }
 };
@@ -420,7 +458,20 @@ const handleDrop = (event: DragEvent) => {
 // Process uploaded file
 const processFile = (file: File) => {
   selectedFile.value = file;
-  toast.add({ title: 'Imagen subida exitosamente', color: 'success' });
+  toast.add({ 
+    title: '📸 Imagen cargada exitosamente', 
+    description: `${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) está listo para procesar`,
+    color: 'success',
+    actions: [{
+      label: 'Analizar ahora',
+      click: () => {
+        if (!mainPrompt.value.trim()) {
+          mainPrompt.value = 'Describe esta imagen en detalle';
+        }
+        executePrompt();
+      }
+    }]
+  });
 };
 
 
@@ -429,7 +480,11 @@ const processFile = (file: File) => {
 const resetContext = () => {
   conversationHistory.value = [];
   currentImageContext.value = '';
-  toast.add({ title: 'Contexto reiniciado', description: 'Comenzarás una nueva conversación', color: 'info' });
+  toast.add({ 
+    title: '🔄 Contexto reiniciado', 
+    description: 'Nueva conversación iniciada. El historial se ha limpiado.',
+    color: 'info'
+  });
 };
 
 // Download generated image
@@ -438,7 +493,11 @@ const downloadImage = (imageUrl: string, index: number) => {
   link.href = imageUrl;
   link.download = `visioncraft-generada-${index + 1}.png`;
   link.click();
-  toast.add({ title: 'Imagen descargada', color: 'success' });
+  toast.add({ 
+    title: '💾 Descarga iniciada', 
+    description: `visioncraft-generada-${index + 1}.png se está descargando`,
+    color: 'success'
+  });
 };
 
 // Clear all data
@@ -450,7 +509,11 @@ const clearAll = () => {
   conversationHistory.value = [];
   currentImageContext.value = '';
   
-  toast.add({ title: 'Todos los datos eliminados', color: 'info' });
+  toast.add({ 
+    title: '🗑️ Datos limpiados', 
+    description: 'Toda la información ha sido eliminada. Puedes empezar de nuevo.',
+    color: 'neutral'
+  });
 };
 
 // Intro animation sequence

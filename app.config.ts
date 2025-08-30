@@ -36,5 +36,25 @@ export default defineAppConfig({
 				root: 'w-full',
 			},
 		},
+		notifications: {
+			position: 'top-0 bottom-auto'
+		},
+		notification: {
+			background: 'bg-gray-800 dark:bg-gray-800',
+			ring: 'ring-1 ring-gray-700 dark:ring-gray-700',
+			title: 'text-gray-100 dark:text-gray-100',
+			description: 'text-gray-300 dark:text-gray-300',
+			icon: {
+				base: 'w-5 h-5 flex-shrink-0'
+			},
+			default: {
+				closeButton: {
+					icon: 'i-heroicons-x-mark-20-solid',
+					color: 'gray',
+					variant: 'link',
+					padded: false
+				}
+			}
+		}
 	},
 });
