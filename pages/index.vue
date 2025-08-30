@@ -133,22 +133,75 @@
             <input 
               v-model="mainPrompt" 
               @keyup.enter="executePrompt"
-:placeholder="conversationHistory.length > 0 ? 'Continúa editando...' : selectedFile ? 'Edita la imagen...' : 'Describe la imagen...'"
+:placeholder="conversationHistory.length > 0 ? 'Continúa editando...' : selectedFiles.length > 0 ? `Edita ${selectedFiles.length} imagen${selectedFiles.length > 1 ? 'es' : ''}...` : 'Describe la imagen...'"
               class="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm md:text-base"
             />
             <button 
               @click="fileInput?.click()"
               :class="[
-                'mr-2 md:mr-3 transition-colors p-1 rounded-full',
-                selectedFile 
+                'mr-2 md:mr-3 transition-colors p-1 rounded-full relative',
+                selectedFiles.length > 0 
                   ? 'text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20' 
                   : 'text-gray-400 hover:text-white hover:bg-gray-700'
               ]"
-              :title="selectedFile ? 'Cambiar imagen' : 'Subir imagen'"
+              :title="selectedFiles.length > 0 ? `${selectedFiles.length} imagen${selectedFiles.length > 1 ? 'es' : ''} seleccionada${selectedFiles.length > 1 ? 's' : ''}` : 'Subir imágenes'"
             >
-              <UIcon :name="selectedFile ? 'i-heroicons-check' : 'i-heroicons-plus'" class="h-4 md:h-5 w-4 md:w-5" />
+              <UIcon :name="selectedFiles.length > 0 ? 'i-heroicons-photo' : 'i-heroicons-plus'" class="h-4 md:h-5 w-4 md:w-5" />
+              <span v-if="selectedFiles.length > 0" class="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                {{ selectedFiles.length }}
+              </span>
             </button>
             <UIcon name="i-heroicons-arrow-right" class="text-gray-400 ml-1 h-4 md:h-5 w-4 md:w-5" />
+          </div>
+        </div>
+        
+        <!-- Selected Images Preview -->
+        <div v-if="selectedFiles.length > 0" class="mb-4 md:mb-6">
+          <div class="bg-gray-800/30 border border-gray-600 rounded-xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center">
+                <UIcon name="i-heroicons-photo" class="h-4 w-4 text-green-400 mr-2" />
+                <span class="text-gray-300 text-sm font-medium">
+                  {{ selectedFiles.length }} imagen{{ selectedFiles.length > 1 ? 'es' : '' }} seleccionada{{ selectedFiles.length > 1 ? 's' : '' }}
+                </span>
+              </div>
+              <UButton 
+                @click="clearSelectedImages"
+                size="xs"
+                variant="ghost"
+                color="neutral"
+                class="text-gray-400 hover:text-white"
+              >
+                <UIcon name="i-heroicons-x-mark" class="h-3 w-3 mr-1" />
+                Limpiar
+              </UButton>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              <div 
+                v-for="(file, index) in selectedFiles" 
+                :key="index"
+                class="relative group aspect-square bg-gray-700 rounded-lg overflow-hidden border-2 border-gray-600 hover:border-yellow-400 transition-colors"
+              >
+                <img 
+                  :src="getImagePreview(file)" 
+                  :alt="`Imagen ${index + 1}`"
+                  class="w-full h-full object-cover"
+                />
+                <button 
+                  @click="removeImage(index)"
+                  class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg touch-manipulation"
+                >
+                  <UIcon name="i-heroicons-x-mark" class="h-4 w-4" />
+                </button>
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white text-xs p-2">
+                  <div class="truncate font-medium">{{ file.name }}</div>
+                  <div class="text-gray-300">{{ (file.size / 1024 / 1024).toFixed(1) }}MB</div>
+                </div>
+                <div class="absolute top-1 left-1 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-bold">
+                  {{ index + 1 }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -159,6 +212,9 @@
               <div class="flex items-center">
                 <UIcon name="i-heroicons-clock" class="h-4 w-4 text-yellow-400 mr-2" />
                 <span class="text-gray-300 text-sm font-medium">Contexto activo</span>
+                <span v-if="selectedFiles.length > 0" class="ml-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                  {{ selectedFiles.length }} img
+                </span>
               </div>
               <UButton 
                 @click="resetContext"
@@ -209,7 +265,9 @@
               <div class="w-2 h-2 bg-yellow-400 rounded-full thinking-dot" style="animation: thinking 1.5s infinite;"></div>
             </div>
           </div>
-          <p class="text-gray-200 text-sm font-medium mb-2">Generando con IA</p>
+          <p class="text-gray-200 text-sm font-medium mb-2">
+            {{ selectedFiles.length > 0 ? `Procesando ${selectedFiles.length} imagen${selectedFiles.length > 1 ? 'es' : ''} con IA` : 'Generando con IA' }}
+          </p>
           <p class="text-gray-400 text-xs">Esto puede tomar unos segundos...</p>
         </div>
 
@@ -218,6 +276,7 @@
           ref="fileInput"
           type="file"
           accept="image/*"
+          multiple
           @change="handleImageUpload"
           class="hidden"
         />
@@ -231,8 +290,8 @@
           class="border-2 border-dashed border-gray-700 rounded-2xl p-8 md:p-12 text-center hover:border-gray-600 transition-colors cursor-pointer mb-6 md:mb-8"
         >
           <UIcon name="i-heroicons-arrow-up-tray" class="h-8 md:h-12 w-8 md:w-12 text-gray-500 mx-auto mb-3 md:mb-4" />
-          <p class="text-gray-400 text-base md:text-lg">Haz clic para subir o arrastra una imagen aquí</p>
-          <p class="text-gray-500 text-xs md:text-sm mt-2">Soporta JPG, PNG, GIF, WebP</p>
+          <p class="text-gray-400 text-base md:text-lg">Haz clic para subir o arrastra imágenes aquí</p>
+          <p class="text-gray-500 text-xs md:text-sm mt-2">Soporta JPG, PNG, GIF, WebP • Múltiples archivos permitidos</p>
         </div>
 
         <!-- AI Response Display -->
@@ -295,7 +354,7 @@ const toast = useToast();
 
 // State
 const mainPrompt = ref('');
-const selectedFile = ref<File | null>(null);
+const selectedFiles = ref<File[]>([]);
 const aiResponse = ref('');
 const generatedImages = ref<string[]>([]);
 
@@ -352,9 +411,9 @@ const executePrompt = async () => {
     }
     
     // Determine action based on context
-    if (selectedFile.value) {
-      // If there's an uploaded file, analyze or edit it
-      response = await $gemini.analyzeImage(selectedFile.value, contextualPrompt);
+    if (selectedFiles.value.length > 0) {
+      // If there are uploaded files, analyze all of them
+      response = await $gemini.analyzeImage(selectedFiles.value, contextualPrompt);
     } else {
       // Otherwise, generate image concept
       response = await $gemini.generateImage(contextualPrompt);
@@ -425,14 +484,21 @@ const executePrompt = async () => {
 // Handle file upload
 const handleImageUpload = (event: Event) => {
   const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
+  const files = Array.from(target.files || []);
   
-  if (file && file.type.startsWith('image/')) {
-    processFile(file);
-  } else {
+  if (files.length === 0) return;
+  
+  const validFiles = files.filter(file => file.type.startsWith('image/'));
+  const invalidCount = files.length - validFiles.length;
+  
+  if (validFiles.length > 0) {
+    processFiles(validFiles);
+  }
+  
+  if (invalidCount > 0) {
     toast.add({ 
-      title: '⚠️ Archivo inválido', 
-      description: 'Por favor selecciona un archivo de imagen válido (JPG, PNG, GIF, WebP)',
+      title: '⚠️ Algunos archivos ignorados', 
+      description: `${invalidCount} archivo${invalidCount > 1 ? 's' : ''} no ${invalidCount > 1 ? 'son' : 'es'} imagen${invalidCount > 1 ? 'es' : ''} válida${invalidCount > 1 ? 's' : ''}`,
       color: 'warning'
     });
   }
@@ -441,33 +507,40 @@ const handleImageUpload = (event: Event) => {
 // Handle drag and drop
 const handleDrop = (event: DragEvent) => {
   event.preventDefault();
-  const files = event.dataTransfer?.files;
-  if (files && files.length > 0) {
-    const file = files[0];
-    if (file.type.startsWith('image/')) {
-      processFile(file);
-    } else {
-      toast.add({ 
-        title: '⚠️ Archivo inválido', 
-        description: 'Solo se permiten archivos de imagen (JPG, PNG, GIF, WebP)',
-        color: 'warning'
-      });
-    }
+  const files = Array.from(event.dataTransfer?.files || []);
+  
+  if (files.length === 0) return;
+  
+  const validFiles = files.filter(file => file.type.startsWith('image/'));
+  const invalidCount = files.length - validFiles.length;
+  
+  if (validFiles.length > 0) {
+    processFiles(validFiles);
+  }
+  
+  if (invalidCount > 0) {
+    toast.add({ 
+      title: '⚠️ Algunos archivos ignorados', 
+      description: `${invalidCount} archivo${invalidCount > 1 ? 's' : ''} no ${invalidCount > 1 ? 'son' : 'es'} imagen${invalidCount > 1 ? 'es' : ''} válida${invalidCount > 1 ? 's' : ''}`,
+      color: 'warning'
+    });
   }
 };
 
-// Process uploaded file
-const processFile = (file: File) => {
-  selectedFile.value = file;
+// Process uploaded files
+const processFiles = (files: File[]) => {
+  selectedFiles.value = [...selectedFiles.value, ...files];
+  const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+  
   toast.add({ 
-    title: '📸 Imagen cargada exitosamente', 
-    description: `${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) está listo para procesar`,
+    title: `📸 ${files.length} imagen${files.length > 1 ? 'es' : ''} cargada${files.length > 1 ? 's' : ''}`, 
+    description: `Total: ${(totalSize / 1024 / 1024).toFixed(2)}MB. Listo${files.length > 1 ? 's' : ''} para procesar`,
     color: 'success',
     actions: [{
       label: 'Analizar ahora',
       click: () => {
         if (!mainPrompt.value.trim()) {
-          mainPrompt.value = 'Describe esta imagen en detalle';
+          mainPrompt.value = files.length > 1 ? 'Describe estas imágenes en detalle' : 'Describe esta imagen en detalle';
         }
         executePrompt();
       }
@@ -475,7 +548,30 @@ const processFile = (file: File) => {
   });
 };
 
+// Get image preview URL
+const getImagePreview = (file: File): string => {
+  return URL.createObjectURL(file);
+};
 
+// Remove individual image
+const removeImage = (index: number) => {
+  selectedFiles.value.splice(index, 1);
+  toast.add({ 
+    title: '🗑️ Imagen eliminada', 
+    description: 'La imagen ha sido removida de la selección',
+    color: 'neutral'
+  });
+};
+
+// Clear all selected images
+const clearSelectedImages = () => {
+  selectedFiles.value = [];
+  toast.add({ 
+    title: '🗑️ Imágenes limpiadas', 
+    description: 'Todas las imágenes han sido removidas',
+    color: 'neutral'
+  });
+};
 
 // Reset conversation context
 const resetContext = () => {
@@ -503,7 +599,7 @@ const downloadImage = (imageUrl: string, index: number) => {
 
 // Clear all data
 const clearAll = () => {
-  selectedFile.value = null;
+  selectedFiles.value = [];
   aiResponse.value = '';
   generatedImages.value = [];
   mainPrompt.value = '';

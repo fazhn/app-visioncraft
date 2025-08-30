@@ -61,19 +61,24 @@ export default defineNuxtPlugin(() => {
           }
         },
         
-        // Analyze and describe an image
-        async analyzeImage(imageFile: File, prompt?: string) {
+        // Analyze and describe an image or multiple images
+        async analyzeImage(imageFiles: File | File[], prompt?: string) {
           try {
-            const imageBase64 = await fileToBase64(imageFile)
-            const imagePart = {
-              inlineData: {
-                data: imageBase64,
-                mimeType: imageFile.type
-              }
+            const files = Array.isArray(imageFiles) ? imageFiles : [imageFiles];
+            const imageParts = [];
+            
+            for (const file of files) {
+              const imageBase64 = await fileToBase64(file);
+              imageParts.push({
+                inlineData: {
+                  data: imageBase64,
+                  mimeType: file.type
+                }
+              });
             }
             
-            const analysisPrompt = prompt || "Describe this image in detail"
-            const result = await model.generateContent([analysisPrompt, imagePart])
+            const analysisPrompt = prompt || (files.length > 1 ? "Describe estas imágenes en detalle" : "Describe esta imagen en detalle");
+            const result = await model.generateContent([analysisPrompt, ...imageParts]);
             
             // Check if response contains both text and images
             const response = result.response
@@ -108,18 +113,25 @@ export default defineNuxtPlugin(() => {
         },
 
         // Edit image based on instructions
-        async editImage(imageFile: File, instructions: string) {
+        async editImage(imageFiles: File | File[], instructions: string) {
           try {
-            const imageBase64 = await fileToBase64(imageFile)
-            const imagePart = {
-              inlineData: {
-                data: imageBase64,
-                mimeType: imageFile.type
-              }
+            const files = Array.isArray(imageFiles) ? imageFiles : [imageFiles];
+            const imageParts = [];
+            
+            for (const file of files) {
+              const imageBase64 = await fileToBase64(file);
+              imageParts.push({
+                inlineData: {
+                  data: imageBase64,
+                  mimeType: file.type
+                }
+              });
             }
             
-            const editPrompt = `Edit this image according to these instructions: ${instructions}`
-            const result = await model.generateContent([editPrompt, imagePart])
+            const editPrompt = files.length > 1 
+              ? `Edita estas imágenes según estas instrucciones: ${instructions}`
+              : `Edit this image according to these instructions: ${instructions}`;
+            const result = await model.generateContent([editPrompt, ...imageParts]);
             
             // Check if response contains both text and images
             const response = result.response

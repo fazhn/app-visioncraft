@@ -8,8 +8,8 @@ declare module '#app' {
     $gemini: {
       model: any;
       generateImage: (prompt: string) => Promise<GeminiResponse>;
-      analyzeImage: (imageFile: File, prompt?: string) => Promise<GeminiResponse>;
-      editImage: (imageFile: File, instructions: string) => Promise<GeminiResponse>;
+      analyzeImage: (imageFiles: File | File[], prompt?: string) => Promise<GeminiResponse>;
+      editImage: (imageFiles: File | File[], instructions: string) => Promise<GeminiResponse>;
     }
   }
 }
