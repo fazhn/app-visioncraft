@@ -84,6 +84,11 @@
     
     <!-- Header Section -->
     <div class="flex flex-col items-center justify-center pt-8 md:pt-20 pb-8 md:pb-12 px-4">
+      <!-- Auth Button - Top Right - Responsive -->
+      <div class="absolute top-3 right-3 md:top-4 md:right-4 z-40">
+        <AuthButton />
+      </div>
+      
       <h1 class="text-3xl md:text-4xl font-normal text-white mb-4 md:mb-6">VisionCraft IA</h1>
       
       <!-- Description and Examples -->
@@ -351,6 +356,7 @@ import PWAInstallButton from '~/components/PWAInstallButton.vue';
 
 const { $gemini } = useNuxtApp();
 const toast = useToast();
+const { isLoggedIn, user: authUser } = useAuth();
 
 // State
 const mainPrompt = ref('');
@@ -390,6 +396,24 @@ const setExamplePrompt = (prompt: string) => {
 
 // Execute main prompt action
 const executePrompt = async () => {
+  // Check authentication first
+  if (!isLoggedIn.value) {
+    toast.add({ 
+      title: '🔐 Inicia sesión requerido', 
+      description: 'Debes iniciar sesión con Google para generar imágenes',
+      color: 'warning',
+      timeout: 5000,
+      actions: [{
+        label: 'Iniciar sesión',
+        click: () => {
+          // Scroll to the auth button
+          document.querySelector('.absolute.top-4.right-4')?.scrollIntoView({ behavior: 'smooth' });
+        }
+      }]
+    });
+    return;
+  }
+
   if (!mainPrompt.value.trim()) {
     toast.add({ 
       title: '⚠️ Campo vacío', 
@@ -483,6 +507,23 @@ const executePrompt = async () => {
 
 // Handle file upload
 const handleImageUpload = (event: Event) => {
+  // Check authentication first
+  if (!isLoggedIn.value) {
+    toast.add({ 
+      title: '🔐 Inicia sesión requerido', 
+      description: 'Debes iniciar sesión con Google para subir imágenes',
+      color: 'warning',
+      timeout: 5000,
+      actions: [{
+        label: 'Iniciar sesión',
+        click: () => {
+          document.querySelector('.absolute.top-4.right-4')?.scrollIntoView({ behavior: 'smooth' });
+        }
+      }]
+    });
+    return;
+  }
+
   const target = event.target as HTMLInputElement;
   const files = Array.from(target.files || []);
   
@@ -507,6 +548,24 @@ const handleImageUpload = (event: Event) => {
 // Handle drag and drop
 const handleDrop = (event: DragEvent) => {
   event.preventDefault();
+  
+  // Check authentication first
+  if (!isLoggedIn.value) {
+    toast.add({ 
+      title: '🔐 Inicia sesión requerido', 
+      description: 'Debes iniciar sesión con Google para subir imágenes',
+      color: 'warning',
+      timeout: 5000,
+      actions: [{
+        label: 'Iniciar sesión',
+        click: () => {
+          document.querySelector('.absolute.top-4.right-4')?.scrollIntoView({ behavior: 'smooth' });
+        }
+      }]
+    });
+    return;
+  }
+
   const files = Array.from(event.dataTransfer?.files || []);
   
   if (files.length === 0) return;

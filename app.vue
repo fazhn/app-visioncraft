@@ -12,6 +12,7 @@ useHead({
 	title: 'VisionCraft IA',
 });
 
+// Simple app initialization
 </script>
 <style lang="css">
 html,

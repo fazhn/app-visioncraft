@@ -16,13 +16,17 @@ export default defineNuxtConfig({
    '@nuxt/fonts',
    '@nuxtjs/color-mode',
    '@vite-pwa/nuxt',
-   '@clerk/nuxt'
+   'nuxt-vue3-google-signin'
   ],
   
   runtimeConfig: {
     public: {
       geminiApiKey: process.env.GEMINI_API_KEY
     }
+  },
+
+  googleSignIn: {
+    clientId: '48314305915-8mr1q5nf0aiqlpa8t2d0uiuf6cfrhokv.apps.googleusercontent.com'
   },
   pwa: {
     registerType: 'autoUpdate',
