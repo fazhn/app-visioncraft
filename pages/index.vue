@@ -1,5 +1,15 @@
 <template>
-  <div class="min-h-screen bg-black text-white">
+  <div class="min-h-screen bg-black text-white relative">
+    
+    
+    <!-- Particles starfield background -->
+    <div class="fixed inset-0 z-0">
+      <vue-particles 
+        id="tsparticles"
+        :options="particlesConfig"
+        class="absolute inset-0"
+      />
+    </div>
     <!-- Intro Animation -->
     <Transition name="intro" mode="out-in">
       <div v-if="showIntro" class="fixed inset-0 z-50 flex items-center justify-center bg-black">
@@ -83,7 +93,7 @@
     </Transition>
     
     <!-- Header Section -->
-    <div class="flex flex-col items-center justify-center pt-8 md:pt-20 pb-8 md:pb-12 px-4">
+    <div class="flex flex-col items-center justify-center pt-8 md:pt-16 pb-4 md:pb-6 px-4 relative z-10">
       <!-- Auth Button - Top Right - Responsive -->
       <div class="absolute top-3 right-3 md:top-4 md:right-4 z-40">
         <AuthButton />
@@ -92,13 +102,13 @@
       <h1 class="text-3xl md:text-4xl font-normal text-white mb-4 md:mb-6">VisionCraft IA</h1>
       
       <!-- Description and Examples -->
-      <div class="text-center mb-8 md:mb-12 max-w-3xl mx-auto px-4">
+      <div class="text-center mb-4 md:mb-6 max-w-3xl mx-auto px-4">
         <p class="text-gray-300 text-base md:text-lg mb-6 md:mb-8">
           Crea, analiza y edita imágenes con inteligencia artificial
         </p>
         
         <!-- Example Prompts -->
-        <div class="space-y-3 mb-6 md:mb-8">
+        <div class="space-y-3 mb-4 md:mb-6">
           <p class="text-gray-400 text-xs md:text-sm font-medium">Ejemplos de prompts:</p>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm">
             <button 
@@ -128,35 +138,52 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Main Interface -->
-      <div class="max-w-4xl mx-auto px-4 md:px-6">
+    <!-- Main Interface -->
+    <div class="max-w-4xl mx-auto px-4 md:px-6 relative z-10">
         <!-- Input Section -->
         <div class="relative mb-6 md:mb-8">
-          <div class="flex items-center bg-gray-800 border border-gray-700 rounded-full px-4 md:px-6 py-3 md:py-4 hover:border-gray-600 focus-within:border-gray-500 transition-colors">
-            <UIcon name="i-heroicons-question-mark-circle" class="text-gray-400 mr-3 md:mr-4 h-4 md:h-5 w-4 md:w-5" />
-            <input 
-              v-model="mainPrompt" 
-              @keyup.enter="executePrompt"
-:placeholder="conversationHistory.length > 0 ? 'Continúa editando...' : selectedFiles.length > 0 ? `Edita ${selectedFiles.length} imagen${selectedFiles.length > 1 ? 'es' : ''}...` : 'Describe la imagen...'"
-              class="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm md:text-base"
-            />
-            <button 
-              @click="fileInput?.click()"
-              :class="[
-                'mr-2 md:mr-3 transition-colors p-1 rounded-full relative',
-                selectedFiles.length > 0 
-                  ? 'text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20' 
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
-              ]"
-              :title="selectedFiles.length > 0 ? `${selectedFiles.length} imagen${selectedFiles.length > 1 ? 'es' : ''} seleccionada${selectedFiles.length > 1 ? 's' : ''}` : 'Subir imágenes'"
-            >
-              <UIcon :name="selectedFiles.length > 0 ? 'i-heroicons-photo' : 'i-heroicons-plus'" class="h-4 md:h-5 w-4 md:w-5" />
-              <span v-if="selectedFiles.length > 0" class="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                {{ selectedFiles.length }}
-              </span>
-            </button>
-            <UIcon name="i-heroicons-arrow-right" class="text-gray-400 ml-1 h-4 md:h-5 w-4 md:w-5" />
+          <div class="group relative">
+            <!-- Glass morphism container with glow -->
+            <div class="absolute inset-0 bg-gradient-to-r from-orange-500/20 via-yellow-500/20 to-orange-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            
+            <div class="relative bg-gray-900/70 backdrop-blur-xl border border-gray-700/50 rounded-2xl px-4 md:px-6 py-4 md:py-5 hover:border-gray-600/50 focus-within:border-orange-500/50 transition-all duration-300 shadow-lg">
+              <div class="flex items-center">
+                <!-- Enhanced textarea -->
+                <textarea 
+                  v-model="mainPrompt" 
+                  @input="autoResize"
+                  @keydown.enter="handleEnter"
+                  rows="1"
+                  :placeholder="conversationHistory.length > 0 ? 'Continúa editando con IA...' : selectedFiles.length > 0 ? `Edita ${selectedFiles.length} imagen${selectedFiles.length > 1 ? 'es' : ''} con IA...` : 'Describe tu imagen perfecta... (Enter para generar)'"
+                  class="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm md:text-base resize-none overflow-hidden font-medium leading-relaxed"
+                ></textarea>
+                
+                <!-- Enhanced action button -->
+                <div class="ml-3">
+                  <!-- Upload Button -->
+                  <button 
+                    @click="fileInput?.click()"
+                    :class="[
+                      'relative transition-all duration-200 p-2.5 rounded-xl group/btn',
+                      selectedFiles.length > 0 
+                        ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 hover:text-orange-300 hover:scale-105' 
+                        : 'bg-gray-700/50 text-gray-400 hover:bg-orange-500/20 hover:text-orange-400 hover:scale-105'
+                    ]"
+                    :title="selectedFiles.length > 0 ? `${selectedFiles.length} imagen${selectedFiles.length > 1 ? 'es' : ''} seleccionada${selectedFiles.length > 1 ? 's' : ''}` : 'Subir imágenes'"
+                  >
+                    <UIcon 
+                      :name="selectedFiles.length > 0 ? 'i-heroicons-photo' : 'i-heroicons-plus'" 
+                      class="h-4 w-4 transition-transform group-hover/btn:scale-110" 
+                    />
+                    <span v-if="selectedFiles.length > 0" class="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg">
+                      {{ selectedFiles.length }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -175,7 +202,7 @@
                 size="xs"
                 variant="ghost"
                 color="neutral"
-                class="text-gray-400 hover:text-white"
+                class="text-gray-400 hover:text-red-400"
               >
                 <UIcon name="i-heroicons-x-mark" class="h-3 w-3 mr-1" />
                 Limpiar
@@ -226,7 +253,7 @@
                 size="xs"
                 variant="ghost"
                 color="neutral"
-                class="text-gray-400 hover:text-white"
+                class="text-gray-400 hover:text-red-400"
               >
                 <UIcon name="i-heroicons-arrow-path" class="h-3 w-3 mr-1" />
                 Reiniciar
@@ -243,20 +270,6 @@
           </div>
         </div>
         
-        <!-- Action Button -->
-        <div class="flex justify-center mb-8 md:mb-12">
-          <UButton 
-            @click="executePrompt"
-            :loading="isProcessing"
-            class="bg-yellow-400 hover:bg-yellow-500 text-black font-medium px-6 md:px-8 py-3 rounded-full transition-colors text-sm md:text-base"
-            size="lg"
-          >
-            <template #leading>
-              <span class="text-sm">↵</span>
-            </template>
-            {{ isProcessing ? 'Generando...' : 'Generar' }}
-          </UButton>
-        </div>
         
         <!-- Loading Animation -->
         <div v-if="isProcessing" class="flex flex-col items-center mb-8 p-6 bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700">
@@ -286,27 +299,17 @@
           class="hidden"
         />
         
-        <!-- Upload Area -->
-        <div 
-          @click="fileInput?.click()"
-          @drop="handleDrop"
-          @dragover.prevent
-          @dragenter.prevent
-          class="border-2 border-dashed border-gray-700 rounded-2xl p-8 md:p-12 text-center hover:border-gray-600 transition-colors cursor-pointer mb-6 md:mb-8"
-        >
-          <UIcon name="i-heroicons-arrow-up-tray" class="h-8 md:h-12 w-8 md:w-12 text-gray-500 mx-auto mb-3 md:mb-4" />
-          <p class="text-gray-400 text-base md:text-lg">Haz clic para subir o arrastra imágenes aquí</p>
-          <p class="text-gray-500 text-xs md:text-sm mt-2">Soporta JPG, PNG, GIF, WebP • Múltiples archivos permitidos</p>
-        </div>
-
         <!-- AI Response Display -->
-        <div v-if="aiResponse || generatedImages.length > 0" class="bg-gray-900 border border-gray-700 rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
+        <div v-if="aiResponse || generatedImages.length > 0" class="bg-gray-800/30 border border-gray-600 rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
           <div class="flex items-center mb-4">
             <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
               <UIcon name="i-heroicons-sparkles" class="h-4 w-4 text-white" />
             </div>
-            <span class="text-gray-300 text-sm font-medium">Respuesta IA</span>
+            <span class="text-gray-300 text-sm font-medium">Resultado Generado</span>
           </div>
+          
+          <!-- Text Response -->
+          <div v-if="aiResponse" class="text-gray-100 whitespace-pre-wrap leading-relaxed mb-6">{{ aiResponse }}</div>
           
           <!-- Generated Images -->
           <div v-if="generatedImages.length > 0" class="mb-6">
@@ -330,9 +333,6 @@
               </div>
             </div>
           </div>
-          
-          <!-- Text Response -->
-          <div v-if="aiResponse" class="text-gray-100 whitespace-pre-wrap leading-relaxed">{{ aiResponse }}</div>
         </div>
         
         <!-- Action Buttons -->
@@ -346,17 +346,277 @@
             <span class="sm:hidden">Limpiar</span>
           </button>
         </div>
+
+        <!-- Upload Area -->
+        <div 
+          @click="fileInput?.click()"
+          @drop="handleDrop"
+          @dragover.prevent
+          @dragenter.prevent
+          class="border-2 border-dashed border-gray-700 rounded-2xl p-8 md:p-12 text-center hover:border-gray-600 transition-colors cursor-pointer mb-6 md:mb-8"
+        >
+          <UIcon name="i-heroicons-arrow-up-tray" class="h-8 md:h-12 w-8 md:w-12 text-gray-500 mx-auto mb-3 md:mb-4" />
+          <p class="text-gray-400 text-base md:text-lg">Haz clic para subir o arrastra imágenes aquí</p>
+          <p class="text-gray-500 text-xs md:text-sm mt-2">Soporta JPG, PNG, GIF, WebP • Múltiples archivos permitidos</p>
+        </div>
       </div>
-    </div>
+      
+      <!-- Testimonials Section -->
+      <div class="max-w-6xl mx-auto px-4 md:px-6 py-16 relative z-10">
+        <div class="text-center mb-12">
+          <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">Lo que dicen nuestros usuarios</h2>
+          <p class="text-gray-400 text-lg">Descubre cómo VisionCraft AI está transformando la creatividad</p>
+        </div>
+        
+        <!-- Infinite Moving Cards -->
+        <div class="relative overflow-hidden">
+          <div class="flex animate-scroll-left">
+            <!-- First set of testimonials -->
+            <div 
+              v-for="(testimonial, index) in testimonials" 
+              :key="index"
+              class="flex-shrink-0 w-80 mx-4"
+            >
+              <CardSpotlight class="h-full">
+                <div class="flex items-center mb-4">
+                  <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-black font-bold text-sm">
+                    {{ testimonial.avatar }}
+                  </div>
+                  <div class="ml-3">
+                    <h4 class="text-white font-medium">{{ testimonial.name }}</h4>
+                    <p class="text-gray-400 text-sm">{{ testimonial.role }}</p>
+                  </div>
+                </div>
+                <p class="text-gray-300 text-sm leading-relaxed mb-4">{{ testimonial.comment }}</p>
+                <div class="flex text-yellow-400">
+                  <UIcon v-for="i in testimonial.rating" :key="i" name="i-heroicons-star-solid" class="h-4 w-4" />
+                </div>
+              </CardSpotlight>
+            </div>
+            
+            <!-- Duplicate set for seamless loop -->
+            <div 
+              v-for="(testimonial, index) in testimonials" 
+              :key="'duplicate-' + index"
+              class="flex-shrink-0 w-80 mx-4"
+            >
+              <CardSpotlight class="h-full">
+                <div class="flex items-center mb-4">
+                  <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-black font-bold text-sm">
+                    {{ testimonial.avatar }}
+                  </div>
+                  <div class="ml-3">
+                    <h4 class="text-white font-medium">{{ testimonial.name }}</h4>
+                    <p class="text-gray-400 text-sm">{{ testimonial.role }}</p>
+                  </div>
+                </div>
+                <p class="text-gray-300 text-sm leading-relaxed mb-4">{{ testimonial.comment }}</p>
+                <div class="flex text-yellow-400">
+                  <UIcon v-for="i in testimonial.rating" :key="i" name="i-heroicons-star-solid" class="h-4 w-4" />
+                </div>
+              </CardSpotlight>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <footer class="relative mt-20 overflow-hidden">
+        <!-- Gradient background -->
+        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent"></div>
+        
+        <!-- Content -->
+        <div class="relative z-10 py-12 px-4 md:px-6">
+          <div class="max-w-6xl mx-auto">
+            
+            <!-- Main footer content -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+              
+              <!-- Brand section -->
+              <div class="text-center md:text-left">
+                <h3 class="text-xl font-bold bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent mb-2">
+                  VisionCraft AI
+                </h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                  Transformando ideas en imágenes extraordinarias con el poder de la inteligencia artificial.
+                </p>
+                <div class="flex justify-center md:justify-start mt-4 space-x-4">
+                  <div class="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                  <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
+                  <div class="w-2 h-2 bg-orange-400 rounded-full animate-pulse" style="animation-delay: 1s;"></div>
+                </div>
+              </div>
+              
+              <!-- Features -->
+              <div class="text-center md:text-left">
+                <h4 class="text-white font-semibold mb-3">Características</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                  <li class="flex items-center justify-center md:justify-start">
+                    <UIcon name="i-heroicons-sparkles" class="h-3 w-3 text-yellow-400 mr-2" />
+                    Generación con IA
+                  </li>
+                  <li class="flex items-center justify-center md:justify-start">
+                    <UIcon name="i-heroicons-photo" class="h-3 w-3 text-orange-400 mr-2" />
+                    Edición avanzada
+                  </li>
+                  <li class="flex items-center justify-center md:justify-start">
+                    <UIcon name="i-heroicons-eye" class="h-3 w-3 text-yellow-400 mr-2" />
+                    Análisis de imágenes
+                  </li>
+                  <li class="flex items-center justify-center md:justify-start">
+                    <UIcon name="i-heroicons-bolt" class="h-3 w-3 text-orange-400 mr-2" />
+                    Resultados instantáneos
+                  </li>
+                </ul>
+              </div>
+              
+              <!-- Contact & Social -->
+              <div class="text-center md:text-left">
+                <h4 class="text-white font-semibold mb-3">Conecta con nosotros</h4>
+                <div class="space-y-2 text-sm text-gray-400">
+                  <div class="flex items-center justify-center md:justify-start">
+                    <UIcon name="i-heroicons-envelope" class="h-3 w-3 text-orange-400 mr-2" />
+                    hello@visioncraft.ai
+                  </div>
+                  <div class="flex items-center justify-center md:justify-start">
+                    <UIcon name="i-heroicons-globe-alt" class="h-3 w-3 text-yellow-400 mr-2" />
+                    www.visioncraft.ai
+                  </div>
+                </div>
+                
+                <!-- Social links placeholder -->
+                <div class="flex justify-center md:justify-start space-x-3 mt-4">
+                  <div class="w-8 h-8 bg-gray-700/50 rounded-full flex items-center justify-center hover:bg-orange-500/20 transition-colors cursor-pointer">
+                    <UIcon name="i-heroicons-heart" class="h-4 w-4 text-gray-400 hover:text-orange-400" />
+                  </div>
+                  <div class="w-8 h-8 bg-gray-700/50 rounded-full flex items-center justify-center hover:bg-yellow-500/20 transition-colors cursor-pointer">
+                    <UIcon name="i-heroicons-star" class="h-4 w-4 text-gray-400 hover:text-yellow-400" />
+                  </div>
+                  <div class="w-8 h-8 bg-gray-700/50 rounded-full flex items-center justify-center hover:bg-orange-500/20 transition-colors cursor-pointer">
+                    <UIcon name="i-heroicons-fire" class="h-4 w-4 text-gray-400 hover:text-orange-400" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Separator -->
+            <div class="border-t border-gray-800 pt-6">
+              
+              <!-- Made with love section -->
+              <div class="flex flex-col md:flex-row items-center justify-between">
+                
+                <!-- Love message -->
+                <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                  <span class="text-sm text-gray-400">Hecho con</span>
+                  <div class="relative">
+                    <div class="text-red-500 text-lg animate-pulse">❤️</div>
+                    <div class="absolute inset-0 text-red-500 text-lg animate-ping opacity-20">❤️</div>
+                  </div>
+              
+                  <span class="text-sm text-gray-400">en España</span>
+
+                </div>
+                
+                <!-- Copyright -->
+                <div class="text-center md:text-right">
+                  <p class="text-xs text-white">
+                    © 2025 VisionCraft AI. Todos los derechos reservados.
+                  </p>
+                  <p class="text-xs text-white mt-1">
+                    Creando el futuro de la imagen digital
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Decorative elements -->
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-px bg-gradient-to-r from-transparent via-orange-400 to-transparent opacity-50"></div>
+          </div>
+        </div>
+        
+        <!-- Background decoration -->
+        <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+        
+        <!-- Floating particles -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+          <div 
+            v-for="i in 8" 
+            :key="i"
+            class="absolute w-1 h-1 bg-orange-400/30 rounded-full animate-pulse"
+            :style="{
+              left: Math.random() * 100 + '%',
+              top: Math.random() * 100 + '%',
+              animationDelay: Math.random() * 3 + 's',
+              animationDuration: (Math.random() * 2 + 2) + 's'
+            }"
+          ></div>
+        </div>
+      </footer>
   </div>
 </template>
 
 <script setup lang="ts">
 import PWAInstallButton from '~/components/PWAInstallButton.vue';
+import BackgroundLines from '~/components/BackgroundLines.vue';
+import CardSpotlight from '~/components/CardSpotlight.vue';
 
 const { $gemini } = useNuxtApp();
 const toast = useToast();
 const { isLoggedIn, user: authUser } = useAuth();
+
+// Particles configuration
+const particlesConfig = {
+  background: {
+    color: {
+      value: "transparent",
+    },
+  },
+  fpsLimit: 60,
+  interactivity: {
+    events: {
+      onClick: {
+        enable: false,
+      },
+      onHover: {
+        enable: false,
+      },
+      resize: true,
+    },
+  },
+  particles: {
+    color: {
+      value: "#ffffff",
+    },
+    move: {
+      direction: "none",
+      enable: true,
+      outModes: {
+        default: "out",
+      },
+      random: true,
+      speed: 0.1,
+      straight: false,
+    },
+    number: {
+      density: {
+        enable: true,
+        area: 800,
+      },
+      value: 120,
+    },
+    opacity: {
+      value: 0.3,
+      random: true,
+    },
+    shape: {
+      type: "circle",
+    },
+    size: {
+      value: { min: 0.5, max: 1.5 },
+    },
+  },
+  detectRetina: true,
+};
 
 // State
 const mainPrompt = ref('');
@@ -367,6 +627,136 @@ const generatedImages = ref<string[]>([]);
 // Context persistence
 const conversationHistory = ref<string[]>([]);
 const currentImageContext = ref<string>('');
+
+// Testimonials data
+const testimonials = ref([
+  {
+    name: "Ana García",
+    role: "Diseñadora Gráfica",
+    avatar: "AG",
+    rating: 5,
+    comment: "VisionCraft AI ha revolucionado mi flujo de trabajo. Puedo crear imágenes increíbles en segundos y editarlas con precisión."
+  },
+  {
+    name: "Carlos Mendez",
+    role: "Content Creator",
+    avatar: "CM",
+    rating: 5,
+    comment: "La calidad de las imágenes generadas es sorprendente. Es como tener un diseñador profesional disponible 24/7."
+  },
+  {
+    name: "María Rodriguez",
+    role: "Marketing Manager",
+    avatar: "MR",
+    rating: 5,
+    comment: "Desde que uso VisionCraft, nuestras campañas visuales han mejorado enormemente. La IA entiende exactamente lo que necesito."
+  },
+  {
+    name: "David Chen",
+    role: "Fotógrafo",
+    avatar: "DC",
+    rating: 5,
+    comment: "Increíble cómo puede mejorar y editar mis fotos. Es como tener un asistente de edición que nunca se cansa."
+  },
+  {
+    name: "Laura Vásquez",
+    role: "Artista Digital",
+    avatar: "LV",
+    rating: 5,
+    comment: "La precisión en las ediciones es impresionante. Puedo describir cambios complejos y los hace perfectamente."
+  },
+  {
+    name: "Roberto Silva",
+    role: "Desarrollador Web",
+    avatar: "RS",
+    rating: 5,
+    comment: "Perfecto para crear assets para mis proyectos. La interfaz es súper intuitiva y los resultados son profesionales."
+  },
+  {
+    name: "Elena Morales",
+    role: "Social Media Manager",
+    avatar: "EM",
+    rating: 5,
+    comment: "Genero contenido visual único para todas mis redes sociales. Cada imagen sale exactamente como la imagino."
+  },
+  {
+    name: "Javier López",
+    role: "Empresario",
+    avatar: "JL",
+    rating: 5,
+    comment: "No tengo conocimientos de diseño, pero con VisionCraft puedo crear imágenes profesionales para mi negocio."
+  },
+  {
+    name: "María López",
+    role: "Marketing Digital",
+    avatar: "ML",
+    rating: 5,
+    comment: "Perfecto para crear contenido para redes sociales. La IA entiende exactamente lo que necesito y lo entrega perfectamente."
+  },
+  {
+    name: "David Torres",
+    role: "Freelancer",
+    avatar: "DT",
+    rating: 4,
+    comment: "Como freelancer, VisionCraft me ahorra horas de trabajo. Puedo ofrecer más servicios a mis clientes en menos tiempo."
+  },
+  {
+    name: "Andrés Peña",
+    role: "YouTuber",
+    avatar: "AP",
+    rating: 5,
+    comment: "Mis thumbnails ahora tienen un nivel profesional increíble. VisionCraft entiende mi estilo y lo mejora cada vez."
+  },
+  {
+    name: "Carmen Flores",
+    role: "Ilustradora",
+    avatar: "CF",
+    rating: 5,
+    comment: "Como ilustradora, pensé que la IA sería mi competencia, pero VisionCraft es mi mejor herramienta de trabajo."
+  },
+  {
+    name: "Miguel Santos",
+    role: "Agencia Publicitaria",
+    avatar: "MS",
+    rating: 5,
+    comment: "Hemos reducido los tiempos de producción en un 80%. Nuestros clientes están impresionados con la calidad."
+  },
+  {
+    name: "Isabel Herrera",
+    role: "Blogger",
+    avatar: "IH",
+    rating: 5,
+    comment: "Cada post de mi blog ahora tiene imágenes únicas y llamativas. Mi engagement ha subido considerablemente."
+  },
+  {
+    name: "Fernando Castro",
+    role: "E-commerce Owner",
+    avatar: "FC",
+    rating: 5,
+    comment: "Las fotos de productos que genero se ven tan profesionales que mis ventas han aumentado un 40%."
+  },
+  {
+    name: "Lucia Mendoza",
+    role: "Community Manager",
+    avatar: "LM",
+    rating: 5,
+    comment: "Gestiono 15 cuentas diferentes y VisionCraft me ayuda a mantener contenido fresco y original en todas."
+  },
+  {
+    name: "Sofia Ruiz",
+    role: "Arquitecta",
+    avatar: "SR",
+    rating: 5,
+    comment: "Uso VisionCraft para visualizar conceptos arquitectónicos. La precisión y calidad de las imágenes es excepcional."
+  },
+  {
+    name: "Miguel Santos",
+    role: "YouTuber",
+    avatar: "MS",
+    rating: 4,
+    comment: "Genial para crear thumbnails y gráficos para mis videos. La interfaz es súper intuitiva y fácil de usar."
+  }
+]);
 
 
 // Loading states
@@ -383,15 +773,19 @@ const fileInput = ref<HTMLInputElement>();
 // Set example prompt
 const setExamplePrompt = (prompt: string) => {
   mainPrompt.value = prompt;
-  toast.add({ 
-    title: '✨ Ejemplo cargado', 
-    description: 'Haz clic en Generar para crear tu imagen', 
-    color: 'warning',
-    actions: [{
-      label: 'Generar ahora',
-      click: () => executePrompt()
-    }]
-  });
+};
+
+const autoResize = (event: Event) => {
+  const textarea = event.target as HTMLTextAreaElement;
+  textarea.style.height = 'auto';
+  textarea.style.height = `${textarea.scrollHeight}px`;
+};
+
+const handleEnter = (event: KeyboardEvent) => {
+  if (!event.shiftKey && mainPrompt.value.trim()) {
+    event.preventDefault();
+    executePrompt();
+  }
 };
 
 // Execute main prompt action
@@ -460,34 +854,16 @@ const executePrompt = async () => {
     // Store generated images for display in AI Response section
     if (response.images && response.images.length > 0) {
       generatedImages.value = response.images;
-      toast.add({ 
-        title: `🎨 ¡${response.images.length} imagen${response.images.length > 1 ? 'es' : ''} generada${response.images.length > 1 ? 's' : ''}!`, 
-        description: 'Tu creación está lista. Puedes continuar editando',
-        color: 'success',
-        actions: [{
-          label: 'Ver resultado',
-          click: () => {
-            document.querySelector('.bg-gray-900.border.border-gray-700')?.scrollIntoView({ behavior: 'smooth' });
-          }
-        }]
-      });
     } else {
       generatedImages.value = [];
-      toast.add({ 
-        title: '🤖 ¡Respuesta de IA lista!', 
-        description: 'Tu análisis está completo. Puedes continuar editando',
-        color: 'info',
-        actions: [{
-          label: 'Ver respuesta',
-          click: () => {
-            document.querySelector('.bg-gray-900.border.border-gray-700')?.scrollIntoView({ behavior: 'smooth' });
-          }
-        }]
-      });
     }
     
     // Clear the input for next edit
     mainPrompt.value = '';
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+      textarea.style.height = 'auto';
+    }
     
   } catch (error) {
     console.error('Error processing prompt:', error);
@@ -589,22 +965,6 @@ const handleDrop = (event: DragEvent) => {
 // Process uploaded files
 const processFiles = (files: File[]) => {
   selectedFiles.value = [...selectedFiles.value, ...files];
-  const totalSize = files.reduce((sum, file) => sum + file.size, 0);
-  
-  toast.add({ 
-    title: `📸 ${files.length} imagen${files.length > 1 ? 'es' : ''} cargada${files.length > 1 ? 's' : ''}`, 
-    description: `Total: ${(totalSize / 1024 / 1024).toFixed(2)}MB. Listo${files.length > 1 ? 's' : ''} para procesar`,
-    color: 'success',
-    actions: [{
-      label: 'Analizar ahora',
-      click: () => {
-        if (!mainPrompt.value.trim()) {
-          mainPrompt.value = files.length > 1 ? 'Describe estas imágenes en detalle' : 'Describe esta imagen en detalle';
-        }
-        executePrompt();
-      }
-    }]
-  });
 };
 
 // Get image preview URL
@@ -709,6 +1069,16 @@ onMounted(() => {
   100% { opacity: 0.2; }
 }
 
+/* Shimmer animation for send button */
+@keyframes shimmer {
+  0% { transform: translateX(-100px) rotate(12deg); }
+  100% { transform: translateX(400px) rotate(12deg); }
+}
+
+.animate-shimmer {
+  animation: shimmer 0.8s ease-out;
+}
+
 .thinking-dot:nth-child(1) { animation-delay: 0s; }
 .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
 .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
@@ -768,4 +1138,26 @@ onMounted(() => {
 .float-particle {
   animation: float-up 4s linear infinite;
 }
+
+
+/* Infinite scroll animation for testimonials */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 40s linear infinite;
+  will-change: transform;
+}
+
+/* Pause animation on hover */
+.animate-scroll-left:hover {
+  animation-play-state: paused;
+}
+
 </style>
