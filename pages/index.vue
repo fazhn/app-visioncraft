@@ -160,8 +160,8 @@
                   class="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm md:text-base resize-none overflow-hidden font-medium leading-relaxed"
                 ></textarea>
                 
-                <!-- Enhanced action button -->
-                <div class="ml-3">
+                <!-- Enhanced action buttons -->
+                <div class="flex items-center space-x-2 ml-3">
                   <!-- Upload Button -->
                   <button 
                     @click="fileInput?.click()"
@@ -180,6 +180,29 @@
                     <span v-if="selectedFiles.length > 0" class="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg">
                       {{ selectedFiles.length }}
                     </span>
+                  </button>
+                  
+                  <!-- Generate Button -->
+                  <button
+                    @click="executePrompt"
+                    :disabled="!mainPrompt.trim()"
+                    :class="[
+                      'relative transition-all duration-200 p-2.5 rounded-xl group/send overflow-hidden',
+                      !mainPrompt.trim() 
+                        ? 'bg-gray-700/30 text-gray-500 cursor-not-allowed opacity-50' 
+                        : 'bg-gradient-to-r from-orange-500 to-yellow-500 text-black hover:from-orange-400 hover:to-yellow-400 hover:scale-105 shadow-lg hover:shadow-orange-500/25'
+                    ]"
+                    :title="!mainPrompt.trim() ? 'Escribe algo para generar' : 'Generar con IA'"
+                  >
+                    <UIcon 
+                      name="i-heroicons-paper-airplane" 
+                      :class="[
+                        'h-4 w-4 transition-all duration-200',
+                        !mainPrompt.trim() ? '' : 'group-hover/send:scale-110 group-hover/send:translate-x-0.5'
+                      ]"
+                    />
+                    <!-- Shimmer effect -->
+                    <div v-if="mainPrompt.trim()" class="absolute inset-0 -top-[2px] -left-[100px] bg-gradient-to-r from-transparent via-white/20 to-transparent w-[100px] transform rotate-12 group-hover/send:animate-shimmer"></div>
                   </button>
                 </div>
               </div>
@@ -1153,6 +1176,13 @@ onMounted(() => {
 .animate-scroll-left {
   animation: scroll-left 40s linear infinite;
   will-change: transform;
+}
+
+/* Faster animation on mobile */
+@media (max-width: 768px) {
+  .animate-scroll-left {
+    animation: scroll-left 25s linear infinite;
+  }
 }
 
 /* Pause animation on hover */
